@@ -41,6 +41,8 @@ class SentimentAnalyzer:
         self.model.to(device)
         self.model.eval()
 
+        # Actual model labels
+        self.model_labels = list(self.model.config.label2id.keys())
         # Map model labels to sentiment categories
         self.label_map = {
             'joy': 'positive',
@@ -48,7 +50,7 @@ class SentimentAnalyzer:
             'anger': 'negative',
             'fear': 'negative',
             'surprise': 'neutral',
-            'neutral': 'neutral'
+            'no_emotion': 'neutral'
         }
 
     def analyze(self, text: str) -> str:
@@ -64,7 +66,7 @@ class SentimentAnalyzer:
         scores = self.get_confidence_scores(text)
         # Map emotion to sentiment
         dominant_emotion = max(scores.items(), key=lambda x: x[1])[0]
-        return self.label_map[dominant_emotion]
+        return dominant_emotion
 
     def get_confidence_scores(self, text: str) -> Dict[str, float]:
         """
@@ -93,7 +95,7 @@ class SentimentAnalyzer:
         # Convert to dictionary with emotion labels
         emotion_scores = {
             label: score.item()
-            for label, score in zip(self.model.config.id2label.values(), scores)
+            for label, score in zip(self.model_labels, scores)
         }
         
         # Aggregate emotions into sentiment categories
@@ -102,7 +104,7 @@ class SentimentAnalyzer:
             'negative': sum(emotion_scores.get(emotion, 0.0) 
                           for emotion in ['sadness', 'anger', 'fear']),
             'neutral': sum(emotion_scores.get(emotion, 0.0) 
-                         for emotion in ['neutral', 'surprise'])
+                         for emotion in ['no_emotion', 'surprise'])
         }
         
         # Normalize scores
