@@ -1,5 +1,6 @@
-from typing import Dict, List, Union, Any
+from typing import Dict, List, Union, Any, Optional
 import torch
+import os
 from .sentiment import SentimentAnalyzer
 from .emotions import EmotionAnalyzer
 
@@ -10,19 +11,24 @@ class EmotionAnalysisSystem:
     comprehensive analysis of Ukrainian text.
     """
 
-    def __init__(self, device: str = None):
+    def __init__(self, device: str = None, token: Optional[str] = None):
         """
         Initialize the emotion analysis system.
         
         Args:
             device: The device to run the models on ('cuda' or 'cpu').
                    If None, will use CUDA if available, otherwise CPU.
+            token: Hugging Face API token for accessing the models.
+                  If None, will try to use the token from environment variable HF_TOKEN.
         """
         if device is None:
             device = 'cuda' if torch.cuda.is_available() else 'cpu'
         
         self.device = device
-        self.sentiment_analyzer = SentimentAnalyzer(device=device)
+        self.token = token or os.getenv('HF_TOKEN')
+        
+        # Initialize analyzers with token
+        self.sentiment_analyzer = SentimentAnalyzer(device=device, token=self.token)
         self.emotion_analyzer = EmotionAnalyzer(device=device)
 
     def analyze(self, text: str) -> Dict[str, Any]:
