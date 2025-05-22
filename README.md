@@ -13,9 +13,8 @@ A powerful system for analyzing emotions and sentiment in Ukrainian text using s
 
 ## Prerequisites
 
-1. A Hugging Face account (required for accessing the sentiment analysis model)
-2. Python 3.8 or higher
-3. pip (Python package installer)
+1. Python 3.8 or higher
+2. pip (Python package installer)
 
 ## Installation
 
@@ -41,17 +40,6 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-4. Set up your Hugging Face token:
-   - Get your token from https://huggingface.co/settings/tokens
-   - Set it as an environment variable:
-     ```bash
-     # On Windows
-     set HF_TOKEN=your_token_here
-
-     # On Linux/Mac
-     export HF_TOKEN=your_token_here
-     ```
-
 ## Usage
 
 ### Direct Usage
@@ -61,8 +49,7 @@ You can use the system directly in your Python code:
 ```python
 from emotion_analyzer.analyzer import EmotionAnalysisSystem
 
-# Initialize the analyzer with your token
-analyzer = EmotionAnalysisSystem(token="your_token_here")  # Or use HF_TOKEN environment variable
+analyzer = EmotionAnalysisSystem()
 
 # Analyze a single text
 text = "Я дуже радий зустріти вас! Це чудовий день!"
@@ -91,7 +78,6 @@ results = analyzer.analyze_batch(texts)
 
 1. Start the API server:
 ```bash
-# Make sure HF_TOKEN is set in your environment
 python -m api.main
 ```
 
@@ -139,11 +125,14 @@ ukrainian-emotion-analysis/
 
 ## Models Used
 
-1. **Sentiment Analysis**: `SkolkovoInstitute/rubert-base-cased-sentiment`
-   - A pre-trained Ukrainian BERT model fine-tuned for sentiment analysis
-   - Classifies text into positive, negative, or neutral sentiment
-   - Note: This model requires a Hugging Face token for access
-   - The token can be provided either through the constructor or the HF_TOKEN environment variable
+1. **Sentiment Analysis**: `cointegrated/rubert-tiny2-cedr-emotion-detection`
+   - A publicly available Russian/Ukrainian BERT model fine-tuned for emotion detection
+   - The model outputs the following emotion labels: `anger`, `fear`, `joy`, `no_emotion`, `sadness`, `surprise`
+   - **Sentiment mapping:**
+     - `joy` → positive
+     - `sadness`, `anger`, `fear` → negative
+     - `no_emotion`, `surprise` → neutral
+   - **No Hugging Face token is required** for this model
 
 2. **Emotion Detection**: `j-hartmann/emotion-english-distilroberta-base`
    - A multilingual RoBERTa model fine-tuned for emotion analysis
@@ -154,23 +143,9 @@ ukrainian-emotion-analysis/
 
 ### Model Access Issues
 
-If you encounter authentication errors when accessing the sentiment model:
-
-1. Make sure your Hugging Face token is valid and has the necessary permissions
-2. Verify the token is properly set in your environment:
-   ```bash
-   # On Windows
-   echo %HF_TOKEN%
-
-   # On Linux/Mac
-   echo $HF_TOKEN
-   ```
-3. If using the token directly in code, ensure it's being passed correctly to the EmotionAnalysisSystem constructor
-4. If you still can't access the model, you can use an alternative model by modifying `emotion_analyzer/sentiment.py`:
-   ```python
-   # Change this line in sentiment.py
-   self.model_name = "your-alternative-model-name"
-   ```
+- The sentiment model is now public and does **not** require authentication or a Hugging Face token.
+- If you encounter errors related to model loading, ensure you have a stable internet connection and the latest version of `transformers` and `torch` installed.
+- If you see errors about missing labels or keys, make sure your code is up to date and matches the label mapping described above.
 
 ## Contributing
 
@@ -182,6 +157,6 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Acknowledgments
 
-- The sentiment analysis model is based on the work of Skolkovo Institute
+- The sentiment analysis model is based on the work of cointegrated
 - The emotion detection model is based on the work of j-hartmann
 - Thanks to the Hugging Face team for the Transformers library 
