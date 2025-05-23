@@ -15,31 +15,27 @@ def start_server():
 def test_analyze_endpoint():
     url = "http://localhost:8000/analyze"
     headers = {"Content-Type": "application/json"}
-    data = {
-        "text": "Я дуже радий зустріти вас!",
-        "use_ukrainian": True,
-        "threshold": 0.2
-    }
-    
-    # Wait for server to start
-    max_retries = 5
-    retry_delay = 2
-    
-    for i in range(max_retries):
+    sentences = [
+        "Я дуже радію зустрічі з тобою.",
+        "Сьогодні дуже сумно, бо йде дощ.",
+        "Я здивований, що ти прийшов.",
+        "Це просто нейтральне повідомлення.",
+        "Я дуже злий, бо не встиг на автобус.",
+        "Я дуже боюся, що не встигну здати роботу.",
+        "Я дуже вдячний тобі за твою допомогу.",
+        "Я дуже гордий, що ти досяг успіху.",
+        "Я дуже задоволений, що ти прийшов.",
+        "Я дуже засмучений, що ти не прийшов."
+    ]
+    for (i, sentence) in enumerate(sentences, 1):
+        print(f"\nSentence {i}: “{sentence}”")
+        data = { "text": sentence, "use_ukrainian": True, "threshold": 0.2 }
         try:
             response = requests.post(url, headers=headers, json=data)
-            response.raise_for_status()
             print("Response status code:", response.status_code)
             print("Response body:", json.dumps(response.json(), indent=2, ensure_ascii=False))
-            return
-        except requests.exceptions.RequestException as e:
-            if i < max_retries - 1:
-                print(f"Attempt {i + 1} failed, retrying in {retry_delay} seconds...")
-                time.sleep(retry_delay)
-            else:
-                print("Error:", e)
-                if hasattr(e, 'response') and e.response is not None:
-                    print("Error details:", e.response.text)
+        except Exception as e:
+            print("Error:", e)
 
 if __name__ == "__main__":
     # Start server in background thread

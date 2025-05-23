@@ -20,7 +20,8 @@ class EmotionAnalyzer:
             device = 'cuda' if torch.cuda.is_available() else 'cpu'
         
         self.device = device
-        self.model_name = "j-hartmann/emotion-english-distilroberta-base"
+        # Using a Russian/Ukrainian BERT model fine-tuned for emotion detection
+        self.model_name = "cointegrated/rubert-tiny2-cedr-emotion-detection"
         
         # Load model and tokenizer
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
@@ -28,14 +29,48 @@ class EmotionAnalyzer:
         self.model.to(device)
         self.model.eval()
 
-        # English emotion labels and their Ukrainian translations
+        # Ukrainian emotion labels
         self.emotion_map = {
             'joy': 'радість',
             'sadness': 'сум',
             'anger': 'злість',
             'fear': 'страх',
-            'surprise': 'здивування',
-            'neutral': 'нейтральність'
+            'no_emotion': 'нейтральність',
+            'surprise': 'здивування'
+        }
+
+        # Additional emotion mappings based on sentiment intensity
+        self.emotion_intensity_map = {
+            'joy': {
+                'high': 'захоплення',
+                'medium': 'радість',
+                'low': 'задоволення'
+            },
+            'sadness': {
+                'high': 'горе',
+                'medium': 'сум',
+                'low': 'розчарування'
+            },
+            'anger': {
+                'high': 'лють',
+                'medium': 'злість',
+                'low': 'роздратування'
+            },
+            'fear': {
+                'high': 'жах',
+                'medium': 'страх',
+                'low': 'тривога'
+            },
+            'no_emotion': {
+                'high': 'спокій',
+                'medium': 'нейтральність',
+                'low': 'байдужість'
+            },
+            'surprise': {
+                'high': 'шок',
+                'medium': 'здивування',
+                'low': 'подив'
+            }
         }
 
     def analyze(self, text: str, use_ukrainian: bool = True) -> str:
@@ -53,7 +88,21 @@ class EmotionAnalyzer:
         dominant_emotion = max(scores.items(), key=lambda x: x[1])[0]
         
         if use_ukrainian:
-            return self.emotion_map[dominant_emotion]
+            # Get the base emotion in Ukrainian
+            base_emotion = self.emotion_map[dominant_emotion]
+            
+            # Get the intensity of the emotion
+            score = scores[dominant_emotion]
+            if score > 0.8:
+                intensity = 'high'
+            elif score > 0.5:
+                intensity = 'medium'
+            else:
+                intensity = 'low'
+                
+            # Return the detailed emotion based on intensity
+            return self.emotion_intensity_map[dominant_emotion][intensity]
+            
         return dominant_emotion
 
     def get_confidence_scores(self, text: str) -> Dict[str, float]:
@@ -80,7 +129,7 @@ class EmotionAnalyzer:
             outputs = self.model(**inputs)
             scores = torch.softmax(outputs.logits, dim=1)[0]
 
-        # Convert to dictionary
+        # Convert to dictionary with base emotions
         return {
             label: score.item()
             for label, score in zip(self.emotion_map.keys(), scores)

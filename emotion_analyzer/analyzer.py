@@ -46,16 +46,18 @@ class EmotionAnalysisSystem:
                 - emotion_mixture: List of emotions present in the text
         """
         sentiment = self.sentiment_analyzer.analyze(text)
+        if sentiment not in ['positive', 'negative', 'neutral']:
+            sentiment = 'neutral'  # Fallback to neutral if mapping fails
         emotions = self.emotion_analyzer.analyze(text, use_ukrainian=True)
         emotion_mixture = self.emotion_analyzer.get_emotion_mixture(text)
-        
-        return {
+        result = {
             'sentiment': sentiment,
             'emotions': {
                 'dominant_emotion': emotions,
                 'emotion_mixture': emotion_mixture
             }
         }
+        return result
 
     def analyze_batch(self, texts: List[str]) -> List[Dict[str, Any]]:
         """
